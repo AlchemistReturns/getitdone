@@ -22,6 +22,7 @@ services:
       DB_PASSWORD: password
       DB_NAME: getitdone
       DB_PORT: 5432
+      JWT_SECRET: k3l4j2k3lj5kl46kl34kl65
     depends_on:
       - postgres
 
