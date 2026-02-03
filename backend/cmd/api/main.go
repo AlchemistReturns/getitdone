@@ -11,6 +11,7 @@ import (
 
 func init() {
 	database.Connect()
+	database.Migrate()
 }
 
 func main() {
