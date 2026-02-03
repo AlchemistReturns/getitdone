@@ -5,6 +5,7 @@ import (
 
 	"example.com/getitdone/database"
 	"example.com/getitdone/internal/auth"
+	"example.com/getitdone/internal/middlewares"
 	"example.com/getitdone/internal/public"
 	"github.com/gin-gonic/gin"
 )
@@ -23,7 +24,7 @@ func main() {
 	api.POST("/register", auth.Register)
 	api.POST("/login", auth.Login)
 
-	api.GET("/", public.Home)
+	api.GET("/", middlewares.RequireAuth, public.Home)
 
 	router.Run(":8080")
 }

@@ -97,8 +97,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	//Send back the token
-	c.JSON(200, gin.H{
-		"token": tokenString,
-	})
+	//Send back the token as a cookie
+	c.SetCookie("Authorization", tokenString, 60*60*24, "/", "localhost", false, true)
+	c.JSON(200, gin.H{})
 }
