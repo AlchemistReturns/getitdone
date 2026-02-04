@@ -47,7 +47,9 @@ func Register(c *gin.Context) {
 
 	//Return the user
 	c.JSON(200, gin.H{
-		"user": user,
+		"id":    user.ID,
+		"name":  user.Name,
+		"email": user.Email,
 	})
 }
 
