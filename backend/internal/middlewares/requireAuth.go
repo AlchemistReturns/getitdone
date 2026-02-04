@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"example.com/getitdone/database"
 	"example.com/getitdone/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -33,14 +32,37 @@ func RequireAuth(c *gin.Context) {
 		return
 	}
 
-	// 4. Extract Claims and Find User
+	// 4. Extract Claims and Create User
 	claims, ok := token.Claims.(jwt.MapClaims)
-	var user models.User
-
-	if !ok || database.DB.First(&user, claims["sub"]).Error != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
 		return
 	}
+
+	// Extract data safely
+	sub, ok := claims["sub"].(float64)
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+		return
+	}
+
+	name, ok := claims["name"].(string)
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user name in token"})
+		return
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user email in token"})
+		return
+	}
+
+	user := models.User{
+		Name:  name,
+		Email: email,
+	}
+	user.ID = uint(sub)
 
 	// 5. Success
 	c.Set("user", user)
