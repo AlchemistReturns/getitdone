@@ -11,6 +11,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Register handles user registration.
+// It receives a JSON body with Name, Email, and Password, creates a new user, and saves it to the DB.
 func Register(c *gin.Context) {
 
 	//Bind the request body to the user struct
@@ -23,7 +25,8 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	//Hash the password
+	// Hash the password using bcrypt.
+	// We never store plain text passwords in the database.
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -48,6 +51,8 @@ func Register(c *gin.Context) {
 	})
 }
 
+// Login authenticates a user.
+// It checks credentials and, if valid, issues a JWT token in an HTTP-only cookie.
 func Login(c *gin.Context) {
 
 	//Get Email and password from request body
@@ -63,7 +68,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	//Look up the user
+	// Look up the user by email
 	var user models.User
 	database.DB.Where("email = ?", body.Email).First(&user)
 	if user.ID == 0 {
@@ -82,7 +87,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	//Generate JWT Token
+	// Generate JWT Token
+	// We create a new token using the HS256 signing method.
+	// Claims include user ID (sub), Name, Email, and Expiration time (exp).
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":   user.ID,
 		"name":  user.Name,
@@ -99,7 +106,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	//Send back the token as a cookie
+	// Send back the token as a cookie
+	// Name: "Authorization"
+	// MaxAge: 3600 * 24 (1 day)
+	// Path: "/" (Available on all paths)
+	// Domain: "localhost" (Adjust for production)
+	// Secure: false (Set to true if using HTTPS)
+	// HttpOnly: true (Cannot be accessed by JavaScript, preventing XSS attacks)
 	c.SetCookie("Authorization", tokenString, 60*60*24, "/", "localhost", false, true)
 	c.JSON(200, gin.H{})
 }
